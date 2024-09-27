@@ -1,1 +1,485 @@
-[]
+[
+    {
+        "id": "6b351a8652aef25d",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "e28997b644305b69",
+        "type": "telegram bot",
+        "botname": "test_ubos_bot",
+        "usernames": "Maryna_Potiievska",
+        "chatids": "692046033",
+        "baseapiurl": "",
+        "testenvironment": false,
+        "updatemode": "polling",
+        "addressfamily": "",
+        "pollinterval": "300",
+        "usesocks": false,
+        "sockshost": "",
+        "socksprotocol": "socks5",
+        "socksport": "6667",
+        "socksusername": "anonymous",
+        "sockspassword": "",
+        "bothost": "",
+        "botpath": "",
+        "localbotport": "8443",
+        "publicbotport": "8443",
+        "privatekey": "",
+        "certificate": "",
+        "useselfsignedcertificate": false,
+        "sslterminated": false,
+        "verboselogging": false
+    },
+    {
+        "id": "7cd1de0e3e293e03",
+        "type": "telegram receiver",
+        "z": "6b351a8652aef25d",
+        "name": "",
+        "bot": "e28997b644305b69",
+        "saveDataDir": "",
+        "filterCommands": false,
+        "x": 90,
+        "y": 280,
+        "wires": [
+            [
+                "fa06eb3e01e6c9ae",
+                "8ac6688ca8987c82"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "8ac6688ca8987c82",
+        "type": "debug",
+        "z": "6b351a8652aef25d",
+        "name": "ChatGPT Request",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 310,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "fa06eb3e01e6c9ae",
+        "type": "function",
+        "z": "6b351a8652aef25d",
+        "name": "ChatGPT Request",
+        "func": "msg.fromApp = msg.payload;\n\nif (msg.payload.content == '/start') {\n    msg.payload = {\n        content: \"Hello! Welcome! What would you like to discuss?\",\n        type: \"message\",\n        chatId: msg.fromApp.chatId,\n    }\n    return [null, msg]\n}\nelse {\n    msg.method = \"POST\"\n    msg.url = 'https://api.openai.com/v1/chat/completions';\n    msg.headers = {\n        'Content-Type': 'application/json',\n        'Authorization': `Bearer ${env.get(\"OPENAI_TOKEN\")}`,\n\n    };\n    msg.payload = {\n        \"model\": \"gpt-3.5-turbo-16k\",\n        \"temperature\": 0.2,\n        \"messages\": [\n            {\n                \"role\": \"system\", \"content\": `You are an advisor. Please formulate your answers reasonably and competent, but in a friendly manner.`\n            },\n            {\n                \"role\": \"user\", \"content\": msg.fromApp.content\n            }\n        ]\n    }\n\n    return [msg, null];\n}",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 310,
+        "y": 280,
+        "wires": [
+            [
+                "6437b366a453ab5e",
+                "e41fa77ed9288985"
+            ],
+            [
+                "53fe9b257f18936d"
+            ]
+        ]
+    },
+    {
+        "id": "6437b366a453ab5e",
+        "type": "debug",
+        "z": "6b351a8652aef25d",
+        "name": "ChatGPT Request",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 550,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "e41fa77ed9288985",
+        "type": "http request",
+        "z": "6b351a8652aef25d",
+        "name": "Answer Request",
+        "method": "use",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 540,
+        "y": 280,
+        "wires": [
+            [
+                "7e0d1540d6d9e934",
+                "d89328ea1a5ed14f"
+            ]
+        ]
+    },
+    {
+        "id": "53fe9b257f18936d",
+        "type": "telegram sender",
+        "z": "6b351a8652aef25d",
+        "name": "Send Start Message",
+        "bot": "e28997b644305b69",
+        "haserroroutput": false,
+        "outputs": 1,
+        "x": 560,
+        "y": 320,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "d89328ea1a5ed14f",
+        "type": "debug",
+        "z": "6b351a8652aef25d",
+        "name": "ChatGPT Response",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 800,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "7e0d1540d6d9e934",
+        "type": "function",
+        "z": "6b351a8652aef25d",
+        "name": "Check ChatGPT Response",
+        "func": "if(msg.statusCode === 200){\n    msg.answer = msg.payload.choices[0].message.content\n    msg.payload = {\n        content: msg.answer,\n        type: \"message\",\n        chatId: msg.fromApp.chatId,\n    }\n    msg.fromApp.answer = msg.answer\nreturn [msg,null];\n}\nelse{\n    msg.payload = {\n        content:JSON.stringify(msg.payload),      \n        type: \"message\",\n        chatId: msg.fromApp.chatId,\n    }\n   \n    return[null,msg]\n}",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 820,
+        "y": 280,
+        "wires": [
+            [
+                "85094144dbbcb306",
+                "02d3594cc3ceac09"
+            ],
+            [
+                "0f6e6cd9fa8e4527"
+            ]
+        ]
+    },
+    {
+        "id": "85094144dbbcb306",
+        "type": "telegram sender",
+        "z": "6b351a8652aef25d",
+        "name": "Send ChatGPT Response",
+        "bot": "e28997b644305b69",
+        "haserroroutput": false,
+        "outputs": 1,
+        "x": 1090,
+        "y": 220,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "0f6e6cd9fa8e4527",
+        "type": "telegram sender",
+        "z": "6b351a8652aef25d",
+        "name": "Send Error Message",
+        "bot": "e28997b644305b69",
+        "haserroroutput": false,
+        "outputs": 1,
+        "x": 1080,
+        "y": 320,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "02d3594cc3ceac09",
+        "type": "function",
+        "z": "6b351a8652aef25d",
+        "name": "DALLE Request",
+        "func": "msg.method = \"POST\"\nmsg.url = 'https://api.openai.com/v1/images/generations';\nmsg.headers = {\n    'Content-Type': 'application/json',\n    'Authorization': `Bearer ${env.get(\"OPENAI_TOKEN\")}`,\n};\nmsg.payload = {\n    \"prompt\": msg.fromApp.content,\n    n: 1,\n    size: \"1024x1024\"\n}\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1060,
+        "y": 280,
+        "wires": [
+            [
+                "bb0a0182daf5e048",
+                "804893a9d025eb12"
+            ]
+        ]
+    },
+    {
+        "id": "bb0a0182daf5e048",
+        "type": "debug",
+        "z": "6b351a8652aef25d",
+        "name": "DALLE Request",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1320,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "804893a9d025eb12",
+        "type": "http request",
+        "z": "6b351a8652aef25d",
+        "name": "Image Request",
+        "method": "use",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 1320,
+        "y": 280,
+        "wires": [
+            [
+                "36602e5d2833b5aa",
+                "1720c2d0209fa232"
+            ]
+        ]
+    },
+    {
+        "id": "1720c2d0209fa232",
+        "type": "debug",
+        "z": "6b351a8652aef25d",
+        "name": "DALLE Response",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1550,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "36602e5d2833b5aa",
+        "type": "function",
+        "z": "6b351a8652aef25d",
+        "name": "Check DALLE Response",
+        "func": "if (msg.statusCode === 200) {\n    msg.answer = msg.payload.data[0].url\n    msg.payload = {\n        content: `<a href=\"${msg.answer}\">Answer in image</a>`,\n        type: \"message\",\n        chatId: msg.fromApp.chatId,\n        options: { parse_mode: \"HTML\" }\n    }\n\n    return [msg, null];\n}\nelse {\n    msg.payload = {\n        content: JSON.stringify(msg.payload),\n        type: \"message\",\n        chatId: msg.fromApp.chatId,\n    }\n\n    return [null, msg]\n}",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1570,
+        "y": 280,
+        "wires": [
+            [
+                "cd290625d779adb4",
+                "1deccac19d47a283"
+            ],
+            [
+                "8ac77165a48239fb",
+                "1deccac19d47a283"
+            ]
+        ]
+    },
+    {
+        "id": "cd290625d779adb4",
+        "type": "telegram sender",
+        "z": "6b351a8652aef25d",
+        "name": "Send DALLE Response",
+        "bot": "e28997b644305b69",
+        "haserroroutput": false,
+        "outputs": 1,
+        "x": 1830,
+        "y": 220,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "8ac77165a48239fb",
+        "type": "telegram sender",
+        "z": "6b351a8652aef25d",
+        "name": "Send Error Message",
+        "bot": "e28997b644305b69",
+        "haserroroutput": false,
+        "outputs": 1,
+        "x": 1820,
+        "y": 320,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "1deccac19d47a283",
+        "type": "function",
+        "z": "6b351a8652aef25d",
+        "name": "ElevenLabs Request",
+        "func": "msg.method = \"POST\"\nmsg.url = 'https://api.elevenlabs.io/v1/text-to-speech/9BWtsMINqrJLrRacOk9x';\nmsg.headers = {\n    'accept': 'audio/mpeg',\n    'xi-api-key': env.get(\"ELEVENLABS_KEY\"),\n    'Content-Type': 'application/json'\n};\nmsg.payload = {\n    \"text\": msg.fromApp.answer,\n    \"model_id\": \"eleven_multilingual_v1\",\n    \"voice_settings\": {\n        \"stability\": 0.5,\n        \"similarity_boost\": 0.5\n    }\n}\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1820,
+        "y": 280,
+        "wires": [
+            [
+                "ec62e720f3ec26d8",
+                "8caf6a57bedb26f4"
+            ]
+        ]
+    },
+    {
+        "id": "ec62e720f3ec26d8",
+        "type": "debug",
+        "z": "6b351a8652aef25d",
+        "name": "ElevenLabs Request",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 2080,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "8caf6a57bedb26f4",
+        "type": "http request",
+        "z": "6b351a8652aef25d",
+        "name": "Voice Message Request",
+        "method": "use",
+        "ret": "bin",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 2090,
+        "y": 280,
+        "wires": [
+            [
+                "fafc532578452489",
+                "13ff4c69c86d6eba"
+            ]
+        ]
+    },
+    {
+        "id": "fafc532578452489",
+        "type": "debug",
+        "z": "6b351a8652aef25d",
+        "name": "ElevenLabs Response",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 2340,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "13ff4c69c86d6eba",
+        "type": "function",
+        "z": "6b351a8652aef25d",
+        "name": "Check ElevenLabs Response",
+        "func": "msg.headers = {\n    'content-type': 'audio/mpeg3;audio/x-mpeg-3;video/mpeg;video/x-mpeg;text/xml',\n    'content-disposition': 'attachment; filename=file.mp3'\n}\n\nif (msg.statusCode !== 200) {\n    msg.payload = {\n        content: JSON.stringify(msg.payload),\n        type: \"message\",\n        chatId: msg.fromApp.chatId,\n    }\n}\nelse msg.payload = {\n    content: msg.payload,\n    type: \"audio\",\n    chatId: msg.fromApp.chatId\n}\n\nreturn msg;",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 2370,
+        "y": 280,
+        "wires": [
+            [
+                "fa1155a344ce7b45"
+            ],
+            [
+                "f885cd158f0b462a"
+            ]
+        ]
+    },
+    {
+        "id": "fa1155a344ce7b45",
+        "type": "telegram sender",
+        "z": "6b351a8652aef25d",
+        "name": "Send ElevenLabs Response",
+        "bot": "e28997b644305b69",
+        "haserroroutput": false,
+        "outputs": 1,
+        "x": 2660,
+        "y": 240,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "f885cd158f0b462a",
+        "type": "telegram sender",
+        "z": "6b351a8652aef25d",
+        "name": "Send Error Message",
+        "bot": "e28997b644305b69",
+        "haserroroutput": false,
+        "outputs": 1,
+        "x": 2640,
+        "y": 300,
+        "wires": [
+            []
+        ]
+    }
+]
